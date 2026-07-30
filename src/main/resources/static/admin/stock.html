@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesDesk POS | Stock</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="../shared/css/design-tokens.css" />
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/layout.css" />
+  </head>
+  <body>
+    <div id="layout-root"></div>
+    <script type="module">
+      import { requireRole } from '../shared/js/auth-guard.js';
+      import { renderLayout } from '../shared/js/layout.js';
+      import { demoStock } from '../shared/js/demo-data.js';
+      if (!requireRole('ADMIN')) throw new Error('Unauthorized');
+      renderLayout('Stock Management');
+      document.querySelector('.content-wrapper').innerHTML = `
+        <section class="grid">
+          <div class="page-header">
+            <div>
+              <h2>Inventory and stock adjustments</h2>
+              <p class="muted">Track stock levels, transfers, and restocks from the admin workspace.</p>
+            </div>
+            <span class="chip warning">4 items need attention</span>
+          </div>
+          <article class="card table-card">
+            <div id="stock-table" class="table-list"></div>
+          </article>
+        </section>
+      `;
+      document.getElementById('stock-table').innerHTML = demoStock.map((item) => `
+        <div class="table-row">
+          <div>
+            <strong>${item.name}</strong>
+            <p class="muted">${item.sku}</p>
+          </div>
+          <div><strong>On hand ${item.stock}</strong></div>
+          <div><span class="chip ${item.stock <= item.reorderLevel ? 'warning' : 'success'}">Reorder ${item.reorderLevel}</span></div>
+          <div><strong>${item.stock <= item.reorderLevel ? 'Urgent' : 'Healthy'}</strong></div>
+        </div>
+      `).join('');
+    </script>
+  </body>
+</html>

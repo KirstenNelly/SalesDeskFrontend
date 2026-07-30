@@ -1,0 +1,14 @@
+:root {
+  --color-navy: #14213d;
+  --color-teal: #0f766e;
+  --color-gold: #f5a623;
+  --color-sand: #f7f3e8;
+  --color-surface: #ffffff;
+  --color-text: #1f2937;
+  --color-muted: #6b7280;
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --shadow: 0 12px 40px rgba(20, 33, 61, 0.12);
+  --font-heading: 'DM Serif Display', Georgia, serif;
+  --font-body: 'DM Sans', Arial, sans-serif;
+}

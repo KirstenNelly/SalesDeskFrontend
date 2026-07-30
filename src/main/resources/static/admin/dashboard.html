@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesDesk POS | Admin Dashboard</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="../shared/css/design-tokens.css" />
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/layout.css" />
+  </head>
+  <body>
+    <div id="layout-root"></div>
+
+    <script type="module">
+      import { requireRole } from '../shared/js/auth-guard.js';
+      import { renderLayout } from '../shared/js/layout.js';
+      import { demoAdminSummary, demoSales } from '../shared/js/demo-data.js';
+
+      if (!requireRole('ADMIN')) {
+        throw new Error('Unauthorized');
+      }
+
+      renderLayout('Admin Dashboard');
+
+      const contentWrapper = document.querySelector('.content-wrapper');
+      contentWrapper.innerHTML = `
+        <section class="grid">
+          <div class="stats-grid">
+            <article class="card"><h3>Daily Sales</h3><p id="daily-sales">—</p></article>
+            <article class="card"><h3>Monthly Revenue</h3><p id="monthly-revenue">—</p></article>
+            <article class="card"><h3>Low Stock Alerts</h3><p id="low-stock">—</p></article>
+            <article class="card"><h3>Pending Payments</h3><p id="pending-payments">—</p></article>
+          </div>
+          <article class="card">
+            <div class="status-banner">
+              <div>
+                <h3>Operations overview</h3>
+                <p class="muted">The admin workspace is ready for products, stock, reports, and customer lifecycle management.</p>
+              </div>
+              <span class="chip">Demo mode</span>
+            </div>
+            <div id="recent-sales" class="table-list"></div>
+          </article>
+        </section>
+      `;
+
+      document.getElementById('daily-sales').textContent = demoAdminSummary.dailySales;
+      document.getElementById('monthly-revenue').textContent = demoAdminSummary.monthlyRevenue;
+      document.getElementById('low-stock').textContent = demoAdminSummary.lowStockAlerts;
+      document.getElementById('pending-payments').textContent = demoAdminSummary.pendingPayments;
+      document.getElementById('recent-sales').innerHTML = demoSales.map((sale) => `
+        <div class="list-row">
+          <strong>${sale.id}</strong>
+          <span>${sale.customer}</span>
+          <span>${sale.status}</span>
+          <span>KES ${sale.total}</span>
+        </div>
+      `).join('');
+    </script>
+  </body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesDesk POS | Customers</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="../shared/css/design-tokens.css" />
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/layout.css" />
+  </head>
+  <body>
+    <div id="layout-root"></div>
+    <script type="module">
+      import { requireRole } from '../shared/js/auth-guard.js';
+      import { renderLayout } from '../shared/js/layout.js';
+      import { demoCustomers } from '../shared/js/demo-data.js';
+      if (!requireRole('ADMIN')) throw new Error('Unauthorized');
+      renderLayout('Customers');
+      document.querySelector('.content-wrapper').innerHTML = `
+        <section class="grid">
+          <div class="page-header">
+            <div>
+              <h2>Customer management</h2>
+              <p class="muted">Maintain customer profiles, balances, and contact details.</p>
+            </div>
+            <span class="chip">${demoCustomers.length} active profiles</span>
+          </div>
+          <article class="card table-card">
+            <div id="customer-table" class="table-list"></div>
+          </article>
+        </section>
+      `;
+      document.getElementById('customer-table').innerHTML = demoCustomers.map((customer) => `
+        <div class="table-row">
+          <div>
+            <strong>${customer.name}</strong>
+            <p class="muted">${customer.phone}</p>
+          </div>
+          <div><strong>Balance</strong></div>
+          <div><span class="chip ${customer.balance > 0 ? 'warning' : 'success'}">KES ${customer.balance}</span></div>
+          <div><strong>${customer.balance > 0 ? 'Credit' : 'Settled'}</strong></div>
+        </div>
+      `).join('');
+    </script>
+  </body>
+</html>

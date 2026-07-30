@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesDesk POS | Settings</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="../shared/css/design-tokens.css" />
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/layout.css" />
+  </head>
+  <body>
+    <div id="layout-root"></div>
+    <script type="module">
+      import { requireRole } from '../shared/js/auth-guard.js';
+      import { renderLayout } from '../shared/js/layout.js';
+      if (!requireRole('ADMIN')) throw new Error('Unauthorized');
+      renderLayout('Settings');
+      document.querySelector('.content-wrapper').innerHTML = `
+        <section class="grid">
+          <div class="page-header">
+            <div>
+              <h2>Company configuration</h2>
+              <p class="muted">Configure company profile, payment channels, subscriptions, and store defaults.</p>
+            </div>
+            <span class="chip">Local demo settings</span>
+          </div>
+          <article class="card">
+            <form class="stack">
+              <label class="field"><span>Company name</span><input value="SalesDesk Retail" /></label>
+              <label class="field"><span>Currency</span><input value="KES" /></label>
+              <label class="field"><span>Receipt footer</span><input value="Thank you for shopping with SalesDesk" /></label>
+              <button class="btn btn-primary" type="button">Save settings</button>
+            </form>
+          </article>
+        </section>
+      `;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesDesk POS | Notifications</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="../shared/css/design-tokens.css" />
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/layout.css" />
+  </head>
+  <body>
+    <div id="layout-root"></div>
+    <script type="module">
+      import { requireRole } from '../shared/js/auth-guard.js';
+      import { renderLayout } from '../shared/js/layout.js';
+      if (!requireRole('CASHIER')) throw new Error('Unauthorized');
+      renderLayout('Notifications');
+      document.querySelector('.content-wrapper').innerHTML = `
+        <section class="card">
+          <h2>Notifications</h2>
+          <p class="muted">Review alerts for low stock, customer payments, and sale updates.</p>
+          <div class="table-list">
+            <div class="list-row"><strong>Restock reminder</strong><span>Milk stock is running low</span></div>
+            <div class="list-row"><strong>Payment follow-up</strong><span>Customer Diana K. has a pending balance</span></div>
+          </div>
+        </section>
+      `;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesDesk POS | My Sales</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="../shared/css/design-tokens.css" />
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/layout.css" />
+  </head>
+  <body>
+    <div id="layout-root"></div>
+    <script type="module">
+      import { requireRole } from '../shared/js/auth-guard.js';
+      import { renderLayout } from '../shared/js/layout.js';
+      import { demoSales } from '../shared/js/demo-data.js';
+      if (!requireRole('CASHIER')) throw new Error('Unauthorized');
+      renderLayout('My Sales');
+      document.querySelector('.content-wrapper').innerHTML = `
+        <section class="card">
+          <h2>Cashier transaction history</h2>
+          <p class="muted">Review recent sales and confirm receipt status at a glance.</p>
+          <div id="sales-table" class="table-list"></div>
+        </section>
+      `;
+      document.getElementById('sales-table').innerHTML = demoSales.map((sale) => `
+        <div class="list-row">
+          <strong>${sale.id}</strong>
+          <span>${sale.customer}</span>
+          <span>${sale.status}</span>
+          <span>KES ${sale.total}</span>
+        </div>
+      `).join('');
+    </script>
+  </body>
+</html>

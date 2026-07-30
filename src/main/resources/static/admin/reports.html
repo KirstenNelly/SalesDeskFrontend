@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesDesk POS | Reports</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="../shared/css/design-tokens.css" />
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/layout.css" />
+  </head>
+  <body>
+    <div id="layout-root"></div>
+    <script type="module">
+      import { requireRole } from '../shared/js/auth-guard.js';
+      import { renderLayout } from '../shared/js/layout.js';
+      if (!requireRole('ADMIN')) throw new Error('Unauthorized');
+      renderLayout('Reports');
+      document.querySelector('.content-wrapper').innerHTML = `
+        <section class="grid">
+          <div class="page-header">
+            <div>
+              <h2>Reports and insights</h2>
+              <p class="muted">View summaries for sales, profit, receivables, and inventory health.</p>
+            </div>
+            <span class="chip">Updated today</span>
+          </div>
+          <div class="stats-grid">
+            <article class="card metric-card"><h3>Revenue</h3><strong>KES 624,300</strong><span class="muted">Monthly trend up 8%</span></article>
+            <article class="card metric-card"><h3>Profit</h3><strong>KES 184,500</strong><span class="muted">After operating costs</span></article>
+            <article class="card metric-card"><h3>Receivables</h3><strong>KES 45,000</strong><span class="muted">Pending collection</span></article>
+          </div>
+          <article class="card">
+            <h3>Performance snapshot</h3>
+            <p class="muted">The store is trending well with steady sales momentum and lower-than-average stockout pressure.</p>
+          </article>
+        </section>
+      `;
+    </script>
+  </body>
+</html>

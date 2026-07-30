@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesDesk POS | Point of Sale</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="../shared/css/design-tokens.css" />
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/layout.css" />
+  </head>
+  <body>
+    <div id="layout-root"></div>
+    <script type="module">
+      import { requireRole } from '../shared/js/auth-guard.js';
+      import { renderLayout } from '../shared/js/layout.js';
+      import { showNotification } from '../shared/js/notifications.js';
+      import { demoProducts } from '../shared/js/demo-data.js';
+      import { setupBarcodeHandler } from '../shared/js/barcode.js';
+
+      if (!requireRole('CASHIER')) {
+        throw new Error('Unauthorized');
+      }
+
+      renderLayout('Point of Sale');
+      const contentWrapper = document.querySelector('.content-wrapper');
+      const cart = [];
+      let paymentMethod = 'cash';
+      let receiptPreview = '';
+
+      contentWrapper.innerHTML = `
+        <section class="grid pos-layout">
+          <div class="card">
+            <h2>Search or scan item</h2>
+            <input id="product-search" class="field-input" placeholder="Search products or enter barcode" />
+            <div id="product-list" class="product-list"></div>
+          </div>
+          <div class="card">
+            <h2>Cart</h2>
+            <div id="cart-items" class="cart-items"></div>
+            <div class="summary-row"><span>Subtotal</span><strong id="subtotal">KES 0</strong></div>
+            <div class="summary-row"><span>Tax</span><strong id="tax">KES 0</strong></div>
+            <div class="summary-row total"><span>Total</span><strong id="total">KES 0</strong></div>
+            <label class="field">
+              <span>Payment method</span>
+              <select id="payment-method">
+                <option value="cash">Cash</option>
+                <option value="mpesa">M-Pesa</option>
+                <option value="credit">Credit</option>
+              </select>
+            </label>
+            <div class="actions-row">
+              <button class="btn btn-secondary" id="clear-cart">Clear</button>
+              <button class="btn btn-primary" id="checkout">Checkout</button>
+            </div>
+            <div id="receipt" class="receipt-preview"></div>
+          </div>
+        </section>
+      `;
+
+      const searchInput = document.getElementById('product-search');
+      const productList = document.getElementById('product-list');
+      const cartItems = document.getElementById('cart-items');
+      const subtotalEl = document.getElementById('subtotal');
+      const taxEl = document.getElementById('tax');
+      const totalEl = document.getElementById('total');
+      const paymentMethodSelect = document.getElementById('payment-method');
+      const receiptEl = document.getElementById('receipt');
+
+      function renderProducts() {
+        const term = searchInput.value.toLowerCase();
+        productList.innerHTML = demoProducts
+          .filter((product) => !term || product.name.toLowerCase().includes(term) || product.barcode.includes(term))
+          .map((product) => `
+            <button class="product-card" data-id="${product.id}">
+              <strong>${product.name}</strong>
+              <span>${product.sku}</span>
+              <span>KES ${product.price}</span>
+            </button>
+          `)
+          .join('');
+      }
+
+      function renderCart() {
+        if (!cart.length) {
+          cartItems.innerHTML = '<p class="muted">No items yet. Search or scan to add products.</p>';
+          subtotalEl.textContent = 'KES 0';
+          taxEl.textContent = 'KES 0';
+          totalEl.textContent = 'KES 0';
+          receiptEl.innerHTML = '';
+          return;
+        }
+
+        cartItems.innerHTML = cart.map((entry) => `
+          <div class="cart-item">
+            <div>
+              <strong>${entry.name}</strong>
+              <p class="muted">${entry.quantity} × KES ${entry.price}</p>
+            </div>
+            <strong>KES ${entry.price * entry.quantity}</strong>
+          </div>
+        `).join('');
+
+        const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const tax = Math.round(subtotal * 0.16);
+        const total = subtotal + tax;
+
+        subtotalEl.textContent = `KES ${subtotal}`;
+        taxEl.textContent = `KES ${tax}`;
+        totalEl.textContent = `KES ${total}`;
+        receiptPreview = `Receipt\n${cart.map((item) => `${item.name} x${item.quantity}`).join('\n')}`;
+        receiptEl.innerHTML = `<h3>Receipt Preview</h3><pre>${receiptPreview}</pre>`;
+      }
+
+      function addProduct(productId) {
+        const product = demoProducts.find((item) => item.id === Number(productId));
+        if (!product) return;
+
+        const existing = cart.find((item) => item.id === product.id);
+        if (existing) {
+          existing.quantity += 1;
+        } else {
+          cart.push({ ...product, quantity: 1 });
+        }
+        renderCart();
+        showNotification(`${product.name} added to cart`, 'success');
+      }
+
+      searchInput.addEventListener('input', renderProducts);
+      productList.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-id]');
+        if (button) {
+          addProduct(button.dataset.id);
+        }
+      });
+
+      paymentMethodSelect.addEventListener('change', (event) => {
+        paymentMethod = event.target.value;
+      });
+
+      document.getElementById('clear-cart').addEventListener('click', () => {
+        cart.length = 0;
+        renderCart();
+      });
+
+      document.getElementById('checkout').addEventListener('click', () => {
+        if (!cart.length) {
+          showNotification('Add at least one item to complete the sale.', 'error');
+          return;
+        }
+
+        const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const receipt = `SalesDesk POS\nPayment: ${paymentMethod.toUpperCase()}\nTotal: KES ${total}`;
+        receiptEl.innerHTML = `<h3>Receipt</h3><pre>${receipt}</pre>`;
+        showNotification('Sale completed successfully', 'success');
+      });
+
+      setupBarcodeHandler((barcode) => {
+        const product = demoProducts.find((item) => item.barcode === barcode);
+        if (product) {
+          addProduct(product.id);
+        } else {
+          showNotification('Product not found for scanned barcode.', 'error');
+        }
+      });
+
+      renderProducts();
+      renderCart();
+    </script>
+  </body>
+</html>

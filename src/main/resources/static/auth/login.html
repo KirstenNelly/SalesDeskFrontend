@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesDesk POS | Sign in</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="../shared/css/design-tokens.css" />
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/layout.css" />
+  </head>
+  <body>
+    <div id="layout-root"></div>
+    <main class="auth-page">
+      <section class="auth-card">
+        <div class="auth-card__header">
+          <p class="eyebrow">SalesDesk POS</p>
+          <h1>Welcome back</h1>
+          <p>Sign in to access the administrator or cashier workspace.</p>
+        </div>
+        <form id="login-form" class="stack">
+          <label class="field">
+            <span>Email or username</span>
+            <input id="username" name="username" type="text" autocomplete="username" required />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="password" name="password" type="password" autocomplete="current-password" required />
+          </label>
+          <button class="btn btn-primary" type="submit">Sign in</button>
+          <div class="actions-row">
+            <button class="btn btn-secondary" id="quick-admin" type="button">Use admin demo</button>
+            <button class="btn btn-secondary" id="quick-cashier" type="button">Use cashier demo</button>
+          </div>
+        </form>
+        <p class="muted">Use the demo credentials <strong>admin@salesdesk.test</strong> / <strong>password</strong> for the admin view or <strong>cashier@salesdesk.test</strong> / <strong>password</strong> for the cashier workspace.</p>
+      </section>
+    </main>
+
+    <script type="module">
+      import { redirectIfAuthenticated } from '../shared/js/auth-guard.js';
+      import { showNotification } from '../shared/js/notifications.js';
+      import { setToken, setUser, setRole } from '../shared/js/storage.js';
+
+      redirectIfAuthenticated();
+
+      const form = document.getElementById('login-form');
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+
+      function loginAs(role) {
+        const demoUser = role === 'ADMIN' ? { name: 'Admin User', role: 'ADMIN' } : { name: 'Cashier User', role: 'CASHIER' };
+        setToken('demo-token');
+        setUser(demoUser);
+        setRole(role);
+        showNotification('Signed in successfully', 'success');
+        window.location.assign(role === 'ADMIN' ? '/admin/dashboard.html' : '/cashier/dashboard.html');
+      }
+
+      document.getElementById('quick-admin').addEventListener('click', () => {
+        usernameInput.value = 'admin@salesdesk.test';
+        passwordInput.value = 'password';
+        loginAs('ADMIN');
+      });
+
+      document.getElementById('quick-cashier').addEventListener('click', () => {
+        usernameInput.value = 'cashier@salesdesk.test';
+        passwordInput.value = 'password';
+        loginAs('CASHIER');
+      });
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+
+        if (username === 'admin@salesdesk.test' && password === 'password') {
+          const demoUser = { name: 'Admin User', role: 'ADMIN' };
+          setToken('demo-token');
+          setUser(demoUser);
+          setRole('ADMIN');
+          showNotification('Signed in successfully', 'success');
+          window.location.assign('/admin/dashboard.html');
+          return;
+        }
+
+        if (username === 'cashier@salesdesk.test' && password === 'password') {
+          loginAs('CASHIER');
+          return;
+        }
+
+        showNotification('Invalid credentials. Use admin@salesdesk.test or cashier@salesdesk.test with password.', 'error');
+      });
+    </script>
+  </body>
+</html>

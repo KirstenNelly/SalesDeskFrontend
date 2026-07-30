@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesDesk POS | Cashier Dashboard</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="../shared/css/design-tokens.css" />
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/layout.css" />
+  </head>
+  <body>
+    <div id="layout-root"></div>
+
+    <script type="module">
+      import { requireRole } from '../shared/js/auth-guard.js';
+      import { renderLayout } from '../shared/js/layout.js';
+      import { api } from '../shared/js/api.js';
+      import { showNotification } from '../shared/js/notifications.js';
+
+      if (!requireRole('CASHIER')) {
+        throw new Error('Unauthorized');
+      }
+
+      renderLayout('Cashier Dashboard');
+
+      const contentWrapper = document.querySelector('.content-wrapper');
+      contentWrapper.innerHTML = `
+        <section class="grid">
+          <div class="status-banner">
+            <div>
+              <h3>Cashier workspace</h3>
+              <p class="muted">Use the POS workflow to process sales, review recent transactions, and keep customer balances up to date.</p>
+            </div>
+            <span class="chip">Demo session</span>
+          </div>
+          <div class="stats-grid">
+            <article class="card metric-card"><h3>Today's Transactions</h3><strong id="transactions">—</strong><span class="muted">Recorded during the shift</span></article>
+            <article class="card metric-card"><h3>Open Drawer</h3><strong id="drawer">—</strong><span class="muted">Cash available for change</span></article>
+            <article class="card metric-card"><h3>Pending Orders</h3><strong id="orders">—</strong><span class="muted">Awaiting completion</span></article>
+          </div>
+          <article class="card">
+            <h3>Quick actions</h3>
+            <div class="actions-row">
+              <a class="btn btn-primary" href="/cashier/pos.html">Open POS</a>
+              <a class="btn btn-secondary" href="/cashier/sales.html">View sales</a>
+              <a class="btn btn-secondary" href="/cashier/customers.html">Manage customers</a>
+            </div>
+          </article>
+        </section>
+      `;
+
+      async function loadSummary() {
+        try {
+          const summary = await api.get('/dashboard/cashier-summary');
+          document.getElementById('transactions').textContent = summary.transactions || '—';
+          document.getElementById('drawer').textContent = summary.drawer || '—';
+          document.getElementById('orders').textContent = summary.orders || '—';
+        } catch (error) {
+          showNotification(error.message || 'Unable to load cashier summary.', 'error');
+        }
+      }
+
+      loadSummary();
+    </script>
+  </body>
+</html>

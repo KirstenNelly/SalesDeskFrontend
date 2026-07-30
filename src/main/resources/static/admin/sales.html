@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesDesk POS | Sales</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="../shared/css/design-tokens.css" />
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/layout.css" />
+  </head>
+  <body>
+    <div id="layout-root"></div>
+    <script type="module">
+      import { requireRole } from '../shared/js/auth-guard.js';
+      import { renderLayout } from '../shared/js/layout.js';
+      import { demoSales } from '../shared/js/demo-data.js';
+      if (!requireRole('ADMIN')) throw new Error('Unauthorized');
+      renderLayout('Sales Overview');
+
+      const contentWrapper = document.querySelector('.content-wrapper');
+      contentWrapper.innerHTML = `
+        <section class="grid">
+          <div class="page-header">
+            <div>
+              <h2>Business sales history</h2>
+              <p class="muted">Track recent invoices, payment status, and cashier activity from one view.</p>
+            </div>
+            <span class="chip">Live demo data</span>
+          </div>
+          <div class="stats-grid">
+            <article class="card metric-card">
+              <h3>Invoices today</h3>
+              <strong>3</strong>
+              <span class="muted">Across cash and credit channels</span>
+            </article>
+            <article class="card metric-card">
+              <h3>Open balances</h3>
+              <strong>1 pending</strong>
+              <span class="muted">Needs follow-up from cashier</span>
+            </article>
+            <article class="card metric-card">
+              <h3>Highest ticket</h3>
+              <strong>KES 2,700</strong>
+              <span class="muted">For Diana K.</span>
+            </article>
+          </div>
+          <article class="card table-card">
+            <div class="page-header">
+              <h3>Recent transactions</h3>
+              <input id="sales-filter" class="field-input" style="max-width: 260px;" placeholder="Search by invoice or customer" />
+            </div>
+            <div id="sales-table" class="table-list"></div>
+          </article>
+        </section>
+      `;
+
+      const salesTable = document.getElementById('sales-table');
+      const salesFilter = document.getElementById('sales-filter');
+
+      function renderSales() {
+        const term = salesFilter.value.toLowerCase();
+        const filteredSales = demoSales.filter((sale) => {
+          return !term || sale.id.toLowerCase().includes(term) || sale.customer.toLowerCase().includes(term);
+        });
+
+        salesTable.innerHTML = filteredSales.map((sale) => `
+          <div class="table-row">
+            <div>
+              <strong>${sale.id}</strong>
+              <p class="muted">${sale.createdAt}</p>
+            </div>
+            <div>
+              <strong>${sale.customer}</strong>
+              <p class="muted">Customer account</p>
+            </div>
+            <div><strong>KES ${sale.total}</strong></div>
+            <div><span class="chip ${sale.status === 'Pending' ? 'warning' : 'success'}">${sale.status}</span></div>
+          </div>
+        `).join('');
+      }
+
+      salesFilter.addEventListener('input', renderSales);
+      renderSales();
+    </script>
+  </body>
+</html>

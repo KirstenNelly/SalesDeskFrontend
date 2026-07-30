@@ -1,0 +1,10 @@
+{
+  "name": "SalesDesk POS",
+  "short_name": "SalesDesk",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#14213d",
+  "theme_color": "#14213d",
+  "icons": [],
+  "description": "A demo POS frontend for admin and cashier workflows"
+}
