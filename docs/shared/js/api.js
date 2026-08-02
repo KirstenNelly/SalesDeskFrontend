@@ -42,7 +42,8 @@ async function request(path, options = {}) {
       error.status = response.status;
       error.payload = payload;
 
-      if (response.status === 401) {
+      const isAuthEndpoint = normalizedPath.startsWith('auth/login') || normalizedPath.startsWith('auth/register');
+      if (response.status === 401 && !isAuthEndpoint) {
         clearAuth();
         window.location.assign(resolveAppUrl('/auth/login.html'));
         error.message = 'Session expired. Please sign in again.';
