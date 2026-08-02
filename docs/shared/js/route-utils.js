@@ -2,8 +2,12 @@ function getSiteBasePath() {
   const segments = window.location.pathname.split('/').filter(Boolean);
   if (!segments.length) return '';
 
-  const knownAppDirs = new Set(['admin', 'auth', 'cashier', 'shared', 'docs', 'assets']);
+  const knownAppDirs = new Set(['admin', 'auth', 'cashier', 'shared', 'assets']);
   const firstSegment = segments[0];
+
+  if (firstSegment === 'docs') {
+    return '/docs';
+  }
 
   if (knownAppDirs.has(firstSegment)) {
     return '';

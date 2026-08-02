@@ -1,5 +1,5 @@
 import { api } from './api.js';
-import { clearAuth, getRole, getToken, getUser, setRole, setToken, setUser } from './storage.js';
+import { clearAuth, findRegisteredAccount, getRole, getToken, getUser, setRole, setToken, setUser } from './storage.js';
 import { resolveAppUrl } from './route-utils.js';
 import { showNotification } from './notifications.js';
 
@@ -47,6 +47,24 @@ function getDemoPayload(credentials) {
   ) || null;
 }
 
+function getRegisteredPayload(credentials) {
+  const account = findRegisteredAccount(credentials.username || credentials.email || '');
+  if (!account || account.password !== credentials.password) {
+    return null;
+  }
+
+  return {
+    token: 'demo-token',
+    user: {
+      name: account.fullName,
+      email: account.email,
+      username: account.username,
+      role: account.role
+    },
+    role: account.role
+  };
+}
+
 function isNetworkError(error) {
   return error.name === 'TypeError' || /failed to fetch/i.test(error.message || '');
 }
@@ -88,16 +106,14 @@ export async function login(credentials) {
     return payload;
   } catch (error) {
     const demoPayload = getDemoPayload(credentials);
-    if (demoPayload && isBackendUnavailable(error)) {
-      const fallback = {
-        token: 'demo-token',
-        user: demoPayload.user,
-        role: demoPayload.role
-      };
-      setToken(fallback.token);
-      setUser(fallback.user);
-      setRole(fallback.role);
-      return fallback;
+    const registeredPayload = getRegisteredPayload(credentials);
+    const fallbackPayload = registeredPayload || demoPayload;
+
+    if (fallbackPayload && isBackendUnavailable(error)) {
+      setToken(fallbackPayload.token);
+      setUser(fallbackPayload.user);
+      setRole(fallbackPayload.role);
+      return fallbackPayload;
     }
 
     throw error;
