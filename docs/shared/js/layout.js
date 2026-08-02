@@ -1,5 +1,6 @@
 import { getUser, getRole } from './storage.js';
 import { resolveAppUrl } from './route-utils.js';
+import { logout } from './auth.js';
 
 const NAV_ITEMS = {
   ADMIN: [
@@ -61,8 +62,8 @@ export function renderLayout(title = 'SalesDesk POS') {
   `;
 
   const signOut = document.getElementById('sign-out');
-  signOut?.addEventListener('click', () => {
-    localStorage.clear();
-    window.location.assign(resolveAppUrl('/auth/login.html'));
+  signOut?.addEventListener('click', (event) => {
+    event.preventDefault();
+    logout();
   });
 }

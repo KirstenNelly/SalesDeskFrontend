@@ -66,7 +66,7 @@
 
     <script type="module">
       import { redirectIfAuthenticated } from '../shared/js/auth-guard.js';
-      import { addRegisteredAccount, findRegisteredAccount } from '../shared/js/storage.js';
+      import { api } from '../shared/js/api.js';
       import { resolveAppUrl } from '../shared/js/route-utils.js';
       import { showNotification } from '../shared/js/notifications.js';
 
@@ -142,20 +142,10 @@
           valid = false;
         }
 
-        if (valid && findRegisteredAccount(values.username)) {
-          errors.username.textContent = 'This username is already taken.';
-          valid = false;
-        }
-
-        if (valid && findRegisteredAccount(values.email)) {
-          errors.email.textContent = 'An account with this email already exists.';
-          valid = false;
-        }
-
         return { valid, values };
       }
 
-      form.addEventListener('submit', (event) => {
+      form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const { valid, values } = validate();
 
@@ -164,15 +154,19 @@
           return;
         }
 
-        addRegisteredAccount({
-          fullName: values.fullName,
-          email: values.email,
-          username: values.username,
-          password: values.password,
-          role: 'CASHIER'
-        });
+        try {
+          await api.post('/auth/register', {
+            fullName: values.fullName,
+            email: values.email,
+            username: values.username,
+            password: values.password,
+            role: 'CASHIER'
+          });
 
-        window.location.assign(resolveAppUrl('/auth/login.html?registered=1'));
+          window.location.assign(resolveAppUrl('/auth/login.html?registered=1'));
+        } catch (error) {
+          showNotification(error.message || 'Unable to create account. Please try again.', 'error');
+        }
       });
     </script>
   </body>

@@ -40,9 +40,8 @@
     </main>
 
     <script type="module">
-      import { redirectIfAuthenticated } from '../shared/js/auth-guard.js';
+      import { redirectIfAuthenticated, login } from '../shared/js/auth.js';
       import { showNotification } from '../shared/js/notifications.js';
-      import { setToken, setUser, setRole, findRegisteredAccount } from '../shared/js/storage.js';
       import { resolveAppUrl } from '../shared/js/route-utils.js';
 
       redirectIfAuthenticated();
@@ -56,53 +55,30 @@
       const usernameInput = document.getElementById('username');
       const passwordInput = document.getElementById('password');
 
-      function loginAs(role, user) {
-        setToken('demo-token');
-        setUser(user);
-        setRole(role);
-        showNotification('Signed in successfully', 'success');
-        window.location.assign(resolveAppUrl(role === 'ADMIN' ? '/admin/dashboard.html' : '/cashier/dashboard.html'));
+      async function submitCredentials(credentials) {
+        try {
+          const payload = await login(credentials);
+          showNotification('Signed in successfully', 'success');
+          window.location.assign(resolveAppUrl(payload.role === 'ADMIN' ? '/admin/dashboard.html' : '/cashier/dashboard.html'));
+        } catch (error) {
+          showNotification(error.message || 'Unable to sign in. Please try again.', 'error');
+        }
       }
 
       document.getElementById('quick-admin').addEventListener('click', () => {
-        usernameInput.value = 'admin@salesdesk.test';
-        passwordInput.value = 'password';
-        loginAs('ADMIN', { name: 'Admin User', role: 'ADMIN' });
+        submitCredentials({ username: 'admin@salesdesk.test', password: 'password' });
       });
 
       document.getElementById('quick-cashier').addEventListener('click', () => {
-        usernameInput.value = 'cashier@salesdesk.test';
-        passwordInput.value = 'password';
-        loginAs('CASHIER', { name: 'Cashier User', role: 'CASHIER' });
+        submitCredentials({ username: 'cashier@salesdesk.test', password: 'password' });
       });
 
       form.addEventListener('submit', (event) => {
         event.preventDefault();
-        const username = usernameInput.value.trim();
-        const password = passwordInput.value;
-
-        if (username === 'admin@salesdesk.test' && password === 'password') {
-          loginAs('ADMIN', { name: 'Admin User', role: 'ADMIN' });
-          return;
-        }
-
-        if (username === 'cashier@salesdesk.test' && password === 'password') {
-          loginAs('CASHIER', { name: 'Cashier User', role: 'CASHIER' });
-          return;
-        }
-
-        const registeredAccount = findRegisteredAccount(username);
-        if (registeredAccount && registeredAccount.password === password) {
-          loginAs(registeredAccount.role, {
-            name: registeredAccount.fullName,
-            role: registeredAccount.role,
-            username: registeredAccount.username,
-            email: registeredAccount.email
-          });
-          return;
-        }
-
-        showNotification('Invalid credentials. Use registered account details or demo credentials.', 'error');
+        submitCredentials({
+          username: usernameInput.value.trim(),
+          password: passwordInput.value
+        });
       });
     </script>
   </body>
