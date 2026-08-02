@@ -51,6 +51,14 @@ function isNetworkError(error) {
   return error.name === 'TypeError' || /failed to fetch/i.test(error.message || '');
 }
 
+function isBackendUnavailable(error) {
+  return (
+    isNetworkError(error) ||
+    error?.status === 404 ||
+    error?.status >= 500
+  );
+}
+
 export function isAuthenticated() {
   const token = getToken();
   if (!token) {
@@ -80,7 +88,7 @@ export async function login(credentials) {
     return payload;
   } catch (error) {
     const demoPayload = getDemoPayload(credentials);
-    if (demoPayload && isNetworkError(error)) {
+    if (demoPayload && isBackendUnavailable(error)) {
       const fallback = {
         token: 'demo-token',
         user: demoPayload.user,

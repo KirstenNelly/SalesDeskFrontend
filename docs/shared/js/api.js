@@ -37,15 +37,19 @@ async function request(path, options = {}) {
     }
 
     if (!response.ok) {
+      const message = payload?.message || payload?.error || 'The request failed.';
+      const error = new Error(message);
+      error.status = response.status;
+      error.payload = payload;
+
       if (response.status === 401) {
         clearAuth();
         window.location.assign(resolveAppUrl('/auth/login.html'));
-        throw new Error('Session expired. Please sign in again.');
+        error.message = 'Session expired. Please sign in again.';
       }
 
-      const message = payload?.message || payload?.error || 'The request failed.';
-      showNotification(message, 'error');
-      throw new Error(message);
+      showNotification(error.message, 'error');
+      throw error;
     }
 
     return payload;
