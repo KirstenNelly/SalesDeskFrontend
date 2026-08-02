@@ -123,7 +123,7 @@ export async function login(credentials) {
 
 export function logout() {
   clearAuth();
-  window.location.assign(resolveAppUrl('/auth/login.html'));
+  window.location.assign('../auth/login.html');
 }
 
 export function requireRole(role) {
@@ -137,9 +137,9 @@ export function requireRole(role) {
     showNotification('You are not authorized to access this page.', 'error');
 
     if (currentRole === 'ADMIN') {
-      window.location.assign(resolveAppUrl('/admin/dashboard.html'));
+      window.location.assign('../admin/dashboard.html');
     } else if (currentRole === 'CASHIER') {
-      window.location.assign(resolveAppUrl('/cashier/dashboard.html'));
+      window.location.assign('../cashier/dashboard.html');
     } else {
       logout();
     }

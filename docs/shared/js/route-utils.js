@@ -2,46 +2,24 @@ function getSiteBasePath() {
   const segments = window.location.pathname.split('/').filter(Boolean);
   if (!segments.length) return '';
 
-  const knownAppDirs = new Set(['admin', 'auth', 'cashier', 'shared', 'assets']);
-  const firstSegment = segments[0];
-
-  if (firstSegment === 'docs') {
-    return '/docs';
+  const docsIndex = segments.indexOf('docs');
+  if (docsIndex >= 0) {
+    return `/${segments.slice(0, docsIndex + 1).join('/')}`;
   }
 
-  if (knownAppDirs.has(firstSegment)) {
+  const knownAppDirs = new Set(['admin', 'auth', 'cashier', 'shared', 'assets']);
+  if (knownAppDirs.has(segments[0])) {
     return '';
   }
 
-  return `/${firstSegment}`;
+  return `/${segments[0]}`;
 }
 
 export function resolveAppUrl(targetPath) {
   const normalizedTarget = targetPath.replace(/^\/+/, '');
   const siteBase = getSiteBasePath();
-  const targetSegments = `${siteBase}/${normalizedTarget}`.split('/').filter(Boolean);
-  const currentPath = window.location.pathname.replace(/\/+$/, '');
-  const currentFile = currentPath.split('/').filter(Boolean).pop() || '';
-  const currentDirSegments = currentPath
-    .split('/')
-    .filter(Boolean)
-    .slice(0, currentFile.includes('.') ? -1 : undefined)
-    .filter(Boolean);
-
-  let sharedLength = 0;
-  while (
-    sharedLength < currentDirSegments.length &&
-    sharedLength < targetSegments.length &&
-    currentDirSegments[sharedLength] === targetSegments[sharedLength]
-  ) {
-    sharedLength += 1;
+  if (!siteBase) {
+    return `/${normalizedTarget}`;
   }
-
-  const relativeSegments = [
-    ...Array.from({ length: Math.max(0, currentDirSegments.length - sharedLength) }, () => '..'),
-    ...targetSegments.slice(sharedLength)
-  ];
-
-  const relativePath = relativeSegments.join('/');
-  return relativePath ? (relativePath.startsWith('.') ? relativePath : `./${relativePath}`) : './';
+  return `${siteBase}/${normalizedTarget}`.replace(/\/+/g, '/');
 }

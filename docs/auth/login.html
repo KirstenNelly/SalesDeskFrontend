@@ -42,7 +42,6 @@
     <script type="module">
       import { redirectIfAuthenticated, login } from '../shared/js/auth.js';
       import { showNotification } from '../shared/js/notifications.js';
-      import { resolveAppUrl } from '../shared/js/route-utils.js';
 
       redirectIfAuthenticated();
 
@@ -59,7 +58,8 @@
         try {
           const payload = await login(credentials);
           showNotification('Signed in successfully', 'success');
-          const destination = payload.role === 'ADMIN' ? resolveAppUrl('/admin/dashboard.html') : resolveAppUrl('/cashier/dashboard.html');
+          const role = (payload.role || payload.user?.role || '').toString().toUpperCase();
+          const destination = role === 'ADMIN' ? '../admin/dashboard.html' : '../cashier/dashboard.html';
           window.location.assign(destination);
         } catch (error) {
           showNotification(error.message || 'Unable to sign in. Please try again.', 'error');

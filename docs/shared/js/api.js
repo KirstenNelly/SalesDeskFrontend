@@ -1,9 +1,8 @@
 import { clearAuth, getToken } from './storage.js';
 import { showNotification } from './notifications.js';
 import { demoAdminSummary, demoCashierSummary } from './demo-data.js';
-import { resolveAppUrl } from './route-utils.js';
 
-const API_BASE_URL = resolveAppUrl('/api');
+const API_BASE_URL = '/api';
 const DEMO_FALLBACKS = {
   '/dashboard/admin-summary': demoAdminSummary,
   '/dashboard/cashier-summary': demoCashierSummary
