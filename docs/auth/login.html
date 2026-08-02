@@ -47,6 +47,11 @@
 
       redirectIfAuthenticated();
 
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('registered') === '1') {
+        showNotification('Account created successfully. Please log in.', 'success');
+      }
+
       const form = document.getElementById('login-form');
       const usernameInput = document.getElementById('username');
       const passwordInput = document.getElementById('password');

@@ -17,10 +17,14 @@
         <div class="auth-card__header">
           <p class="eyebrow">Create account</p>
           <h1>Register for SalesDesk</h1>
-          <p>Enter your details to create a new cashier account.</p>
+          <p>Use this form to create a new <strong>Cashier</strong> account only. Admin accounts must be created by an authenticated administrator.</p>
         </div>
 
         <form id="register-form" class="stack">
+          <label class="field">
+            <span>Account type</span>
+            <input type="text" value="Cashier" disabled aria-disabled="true" />
+          </label>
           <label class="field">
             <span>Full Name</span>
             <input id="full-name" name="fullName" type="text" autocomplete="name" required />
@@ -168,8 +172,7 @@
           role: 'CASHIER'
         });
 
-        showNotification('Account created successfully. Please sign in.', 'success');
-        window.location.assign(resolveAppUrl('/auth/login.html'));
+        window.location.assign(resolveAppUrl('/auth/login.html?registered=1'));
       });
     </script>
   </body>
