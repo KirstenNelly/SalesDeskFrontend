@@ -59,7 +59,7 @@
         try {
           const payload = await login(credentials);
           showNotification('Signed in successfully', 'success');
-          const destination = payload.role === 'ADMIN' ? '../admin/dashboard.html' : '../cashier/dashboard.html';
+          const destination = payload.role === 'ADMIN' ? resolveAppUrl('/admin/dashboard.html') : resolveAppUrl('/cashier/dashboard.html');
           window.location.assign(destination);
         } catch (error) {
           showNotification(error.message || 'Unable to sign in. Please try again.', 'error');
