@@ -158,12 +158,12 @@ export function redirectIfAuthenticated() {
   const role = getRole();
 
   if (role === 'ADMIN') {
-    window.location.assign(resolveAppUrl('/admin/dashboard.html'));
+    window.location.assign('../admin/dashboard.html');
     return true;
   }
 
   if (role === 'CASHIER') {
-    window.location.assign(resolveAppUrl('/cashier/dashboard.html'));
+    window.location.assign('../cashier/dashboard.html');
     return true;
   }
 
