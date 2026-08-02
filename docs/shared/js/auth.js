@@ -73,6 +73,7 @@ function isBackendUnavailable(error) {
   return (
     isNetworkError(error) ||
     error?.status === 404 ||
+    error?.status === 401 ||
     error?.status >= 500
   );
 }
