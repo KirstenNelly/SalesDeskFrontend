@@ -66,6 +66,7 @@
 
     <script type="module">
       import { redirectIfAuthenticated } from '../shared/js/auth-guard.js';
+      import { addRegisteredAccount, findRegisteredAccount } from '../shared/js/storage.js';
       import { api } from '../shared/js/api.js';
       import { resolveAppUrl } from '../shared/js/route-utils.js';
       import { showNotification } from '../shared/js/notifications.js';
@@ -142,6 +143,16 @@
           valid = false;
         }
 
+        if (valid && findRegisteredAccount(values.username)) {
+          errors.username.textContent = 'This username is already taken.';
+          valid = false;
+        }
+
+        if (valid && findRegisteredAccount(values.email)) {
+          errors.email.textContent = 'An account with this email already exists.';
+          valid = false;
+        }
+
         return { valid, values };
       }
 
@@ -165,6 +176,19 @@
 
           window.location.assign(resolveAppUrl('/auth/login.html?registered=1'));
         } catch (error) {
+          const networkError = error.name === 'TypeError' || /failed to fetch/i.test(error.message || '');
+          if (networkError) {
+            addRegisteredAccount({
+              fullName: values.fullName,
+              email: values.email,
+              username: values.username,
+              password: values.password,
+              role: 'CASHIER'
+            });
+            window.location.assign(resolveAppUrl('/auth/login.html?registered=1'));
+            return;
+          }
+
           showNotification(error.message || 'Unable to create account. Please try again.', 'error');
         }
       });
