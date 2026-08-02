@@ -165,6 +165,15 @@
           return;
         }
 
+        const isUnreachable = (error) => {
+          return (
+            error?.name === 'TypeError' ||
+            /failed to fetch/i.test(error?.message || '') ||
+            error?.status === 404 ||
+            error?.status >= 500
+          );
+        };
+
         try {
           await api.post('/auth/register', {
             fullName: values.fullName,
@@ -176,8 +185,7 @@
 
           window.location.assign(resolveAppUrl('/auth/login.html?registered=1'));
         } catch (error) {
-          const networkError = error.name === 'TypeError' || /failed to fetch/i.test(error.message || '');
-          if (networkError) {
+          if (isUnreachable(error)) {
             addRegisteredAccount({
               fullName: values.fullName,
               email: values.email,
