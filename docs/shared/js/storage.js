@@ -1,7 +1,8 @@
 const STORAGE_KEYS = {
   token: 'salesdesk.jwt',
   user: 'salesdesk.user',
-  role: 'salesdesk.role'
+  role: 'salesdesk.role',
+  accounts: 'salesdesk.accounts'
 };
 
 export function getToken() {
@@ -39,6 +40,31 @@ export function setRole(role) {
   } else {
     localStorage.removeItem(STORAGE_KEYS.role);
   }
+}
+
+export function getRegisteredAccounts() {
+  const raw = localStorage.getItem(STORAGE_KEYS.accounts);
+  return raw ? JSON.parse(raw) : [];
+}
+
+export function saveRegisteredAccounts(accounts) {
+  localStorage.setItem(STORAGE_KEYS.accounts, JSON.stringify(accounts));
+}
+
+export function findRegisteredAccount(identifier) {
+  const normalized = identifier.trim().toLowerCase();
+  return getRegisteredAccounts().find((account) => {
+    return (
+      account.username.toLowerCase() === normalized ||
+      account.email.toLowerCase() === normalized
+    );
+  }) || null;
+}
+
+export function addRegisteredAccount(account) {
+  const accounts = getRegisteredAccounts();
+  accounts.push(account);
+  saveRegisteredAccounts(accounts);
 }
 
 export function clearAuth() {

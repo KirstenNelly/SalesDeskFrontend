@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesDesk POS | Create account</title>
+    <link rel="manifest" href="../manifest.webmanifest" />
+    <link rel="stylesheet" href="../shared/css/design-tokens.css" />
+    <link rel="stylesheet" href="../shared/css/base.css" />
+    <link rel="stylesheet" href="../shared/css/components.css" />
+    <link rel="stylesheet" href="../shared/css/layout.css" />
+  </head>
+  <body>
+    <div id="layout-root"></div>
+    <main class="auth-page">
+      <section class="auth-card auth-card--wide">
+        <div class="auth-card__header">
+          <p class="eyebrow">Create account</p>
+          <h1>Register for SalesDesk</h1>
+          <p>Enter your details to create a new cashier account.</p>
+        </div>
+
+        <form id="register-form" class="stack">
+          <label class="field">
+            <span>Full Name</span>
+            <input id="full-name" name="fullName" type="text" autocomplete="name" required />
+            <span class="field-error" id="full-name-error"></span>
+          </label>
+
+          <label class="field">
+            <span>Email Address</span>
+            <input id="email" name="email" type="email" autocomplete="email" required />
+            <span class="field-error" id="email-error"></span>
+          </label>
+
+          <label class="field">
+            <span>Username</span>
+            <input id="username" name="username" type="text" autocomplete="username" required />
+            <span class="field-error" id="username-error"></span>
+          </label>
+
+          <label class="field">
+            <span>Password</span>
+            <input id="password" name="password" type="password" autocomplete="new-password" required />
+            <span class="field-error" id="password-error"></span>
+          </label>
+
+          <label class="field">
+            <span>Confirm Password</span>
+            <input id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" required />
+            <span class="field-error" id="confirm-password-error"></span>
+          </label>
+
+          <button class="btn btn-primary" type="submit">Create account</button>
+
+          <p class="muted">
+            Already have an account? <a href="./login.html">Sign in</a>
+          </p>
+        </form>
+      </section>
+    </main>
+
+    <script type="module">
+      import { redirectIfAuthenticated } from '../shared/js/auth-guard.js';
+      import { addRegisteredAccount, findRegisteredAccount } from '../shared/js/storage.js';
+      import { resolveAppUrl } from '../shared/js/route-utils.js';
+      import { showNotification } from '../shared/js/notifications.js';
+
+      redirectIfAuthenticated();
+
+      const form = document.getElementById('register-form');
+      const fields = {
+        fullName: document.getElementById('full-name'),
+        email: document.getElementById('email'),
+        username: document.getElementById('username'),
+        password: document.getElementById('password'),
+        confirmPassword: document.getElementById('confirm-password')
+      };
+
+      const errors = {
+        fullName: document.getElementById('full-name-error'),
+        email: document.getElementById('email-error'),
+        username: document.getElementById('username-error'),
+        password: document.getElementById('password-error'),
+        confirmPassword: document.getElementById('confirm-password-error')
+      };
+
+      function clearErrors() {
+        Object.values(errors).forEach((node) => (node.textContent = ''));
+      }
+
+      function validate() {
+        clearErrors();
+        const values = {
+          fullName: fields.fullName.value.trim(),
+          email: fields.email.value.trim(),
+          username: fields.username.value.trim(),
+          password: fields.password.value,
+          confirmPassword: fields.confirmPassword.value
+        };
+
+        let valid = true;
+
+        if (!values.fullName) {
+          errors.fullName.textContent = 'Full name is required.';
+          valid = false;
+        }
+
+        if (!values.email) {
+          errors.email.textContent = 'Email address is required.';
+          valid = false;
+        } else if (!/^\S+@\S+\.\S+$/.test(values.email)) {
+          errors.email.textContent = 'Enter a valid email address.';
+          valid = false;
+        }
+
+        if (!values.username) {
+          errors.username.textContent = 'Username is required.';
+          valid = false;
+        } else if (values.username.length < 3) {
+          errors.username.textContent = 'Username must be at least 3 characters.';
+          valid = false;
+        }
+
+        if (!values.password) {
+          errors.password.textContent = 'Password is required.';
+          valid = false;
+        } else if (values.password.length < 8) {
+          errors.password.textContent = 'Password must be at least 8 characters.';
+          valid = false;
+        }
+
+        if (!values.confirmPassword) {
+          errors.confirmPassword.textContent = 'Confirm your password.';
+          valid = false;
+        } else if (values.password !== values.confirmPassword) {
+          errors.confirmPassword.textContent = 'Passwords do not match.';
+          valid = false;
+        }
+
+        if (valid && findRegisteredAccount(values.username)) {
+          errors.username.textContent = 'This username is already taken.';
+          valid = false;
+        }
+
+        if (valid && findRegisteredAccount(values.email)) {
+          errors.email.textContent = 'An account with this email already exists.';
+          valid = false;
+        }
+
+        return { valid, values };
+      }
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const { valid, values } = validate();
+
+        if (!valid) {
+          showNotification('Please fix the errors before continuing.', 'error');
+          return;
+        }
+
+        addRegisteredAccount({
+          fullName: values.fullName,
+          email: values.email,
+          username: values.username,
+          password: values.password,
+          role: 'CASHIER'
+        });
+
+        showNotification('Account created successfully. Please sign in.', 'success');
+        window.location.assign(resolveAppUrl('/auth/login.html'));
+      });
+    </script>
+  </body>
+</html>

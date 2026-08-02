@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SalesDesk POS | Sign in</title>
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="manifest" href="../manifest.webmanifest" />
     <link rel="stylesheet" href="../shared/css/design-tokens.css" />
     <link rel="stylesheet" href="../shared/css/base.css" />
     <link rel="stylesheet" href="../shared/css/components.css" />
@@ -35,13 +35,15 @@
           </div>
         </form>
         <p class="muted">Use the demo credentials <strong>admin@salesdesk.test</strong> / <strong>password</strong> for the admin view or <strong>cashier@salesdesk.test</strong> / <strong>password</strong> for the cashier workspace.</p>
+        <p class="muted">New here? <a href="./register.html">Create an account</a></p>
       </section>
     </main>
 
     <script type="module">
       import { redirectIfAuthenticated } from '../shared/js/auth-guard.js';
       import { showNotification } from '../shared/js/notifications.js';
-      import { setToken, setUser, setRole } from '../shared/js/storage.js';
+      import { setToken, setUser, setRole, findRegisteredAccount } from '../shared/js/storage.js';
+      import { resolveAppUrl } from '../shared/js/route-utils.js';
 
       redirectIfAuthenticated();
 
@@ -49,25 +51,24 @@
       const usernameInput = document.getElementById('username');
       const passwordInput = document.getElementById('password');
 
-      function loginAs(role) {
-        const demoUser = role === 'ADMIN' ? { name: 'Admin User', role: 'ADMIN' } : { name: 'Cashier User', role: 'CASHIER' };
+      function loginAs(role, user) {
         setToken('demo-token');
-        setUser(demoUser);
+        setUser(user);
         setRole(role);
         showNotification('Signed in successfully', 'success');
-        window.location.assign(role === 'ADMIN' ? '/admin/dashboard.html' : '/cashier/dashboard.html');
+        window.location.assign(resolveAppUrl(role === 'ADMIN' ? '/admin/dashboard.html' : '/cashier/dashboard.html'));
       }
 
       document.getElementById('quick-admin').addEventListener('click', () => {
         usernameInput.value = 'admin@salesdesk.test';
         passwordInput.value = 'password';
-        loginAs('ADMIN');
+        loginAs('ADMIN', { name: 'Admin User', role: 'ADMIN' });
       });
 
       document.getElementById('quick-cashier').addEventListener('click', () => {
         usernameInput.value = 'cashier@salesdesk.test';
         passwordInput.value = 'password';
-        loginAs('CASHIER');
+        loginAs('CASHIER', { name: 'Cashier User', role: 'CASHIER' });
       });
 
       form.addEventListener('submit', (event) => {
@@ -76,21 +77,27 @@
         const password = passwordInput.value;
 
         if (username === 'admin@salesdesk.test' && password === 'password') {
-          const demoUser = { name: 'Admin User', role: 'ADMIN' };
-          setToken('demo-token');
-          setUser(demoUser);
-          setRole('ADMIN');
-          showNotification('Signed in successfully', 'success');
-          window.location.assign('/admin/dashboard.html');
+          loginAs('ADMIN', { name: 'Admin User', role: 'ADMIN' });
           return;
         }
 
         if (username === 'cashier@salesdesk.test' && password === 'password') {
-          loginAs('CASHIER');
+          loginAs('CASHIER', { name: 'Cashier User', role: 'CASHIER' });
           return;
         }
 
-        showNotification('Invalid credentials. Use admin@salesdesk.test or cashier@salesdesk.test with password.', 'error');
+        const registeredAccount = findRegisteredAccount(username);
+        if (registeredAccount && registeredAccount.password === password) {
+          loginAs(registeredAccount.role, {
+            name: registeredAccount.fullName,
+            role: registeredAccount.role,
+            username: registeredAccount.username,
+            email: registeredAccount.email
+          });
+          return;
+        }
+
+        showNotification('Invalid credentials. Use registered account details or demo credentials.', 'error');
       });
     </script>
   </body>

@@ -1,4 +1,5 @@
 import { getUser, getRole } from './storage.js';
+import { resolveAppUrl } from './route-utils.js';
 
 const NAV_ITEMS = {
   ADMIN: [
@@ -29,6 +30,7 @@ export function renderLayout(title = 'SalesDesk POS') {
   const userName = user?.name || 'SalesDesk User';
 
   const currentPath = window.location.pathname;
+  const resolvedItems = items.map((item) => ({ ...item, href: resolveAppUrl(item.href) }));
 
   root.innerHTML = `
     <div class="app-shell">
@@ -38,7 +40,7 @@ export function renderLayout(title = 'SalesDesk POS') {
           <p>${role === 'CASHIER' ? 'Cashier Workspace' : 'Administrator Workspace'}</p>
         </div>
         <nav class="sidebar__nav">
-          ${items.map((item) => `<a href="${item.href}" class="nav-link ${currentPath === item.href ? 'active' : ''}">${item.label}</a>`).join('')}
+          ${resolvedItems.map((item) => `<a href="${item.href}" class="nav-link ${currentPath === item.href ? 'active' : ''}">${item.label}</a>`).join('')}
         </nav>
       </aside>
       <div class="app-shell__main">
@@ -50,7 +52,7 @@ export function renderLayout(title = 'SalesDesk POS') {
           <div class="topbar__actions">
             <span class="badge">${role || 'Guest'}</span>
             <span class="profile-pill">${userName}</span>
-            <a href="/auth/login.html" class="btn btn-secondary" id="sign-out">Sign out</a>
+            <a href="${resolveAppUrl('/auth/login.html')}" class="btn btn-secondary" id="sign-out">Sign out</a>
           </div>
         </header>
         <div class="content-wrapper"></div>
@@ -61,6 +63,6 @@ export function renderLayout(title = 'SalesDesk POS') {
   const signOut = document.getElementById('sign-out');
   signOut?.addEventListener('click', () => {
     localStorage.clear();
-    window.location.assign('/auth/login.html');
+    window.location.assign(resolveAppUrl('/auth/login.html'));
   });
 }

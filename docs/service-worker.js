@@ -1,8 +1,12 @@
-const CACHE_NAME = 'salesdesk-static-v2';
-const APP_SHELL = ['/', '/index.html', '/auth/login.html', '/manifest.webmanifest', '/offline.html'];
+const CACHE_NAME = 'salesdesk-static-v3';
+const APP_SHELL = ['index.html', 'auth/login.html', 'auth/register.html', 'manifest.webmanifest', 'offline.html'];
+
+function getAppShellUrls() {
+  return APP_SHELL.map((entry) => new URL(entry, self.registration.scope).toString());
+}
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(getAppShellUrls())));
 });
 
 self.addEventListener('activate', (event) => {
@@ -12,8 +16,10 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const offlineUrl = new URL('offline.html', self.registration.scope).toString();
+
   if (event.request.mode === 'navigate') {
-    event.respondWith(fetch(event.request).catch(() => caches.match('/offline.html')));
+    event.respondWith(fetch(event.request).catch(() => caches.match(offlineUrl)));
     return;
   }
 

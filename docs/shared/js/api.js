@@ -1,8 +1,9 @@
 import { clearAuth, getToken } from './storage.js';
 import { showNotification } from './notifications.js';
 import { demoAdminSummary, demoCashierSummary } from './demo-data.js';
+import { resolveAppUrl } from './route-utils.js';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = resolveAppUrl('/api');
 const DEMO_FALLBACKS = {
   '/dashboard/admin-summary': demoAdminSummary,
   '/dashboard/cashier-summary': demoCashierSummary
@@ -11,6 +12,7 @@ const DEMO_FALLBACKS = {
 async function request(path, options = {}) {
   const headers = new Headers(options.headers || {});
   const token = getToken();
+  const normalizedPath = path.replace(/^\/+/, '');
 
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
@@ -21,7 +23,7 @@ async function request(path, options = {}) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(`${API_BASE_URL}/${normalizedPath}`, {
       ...options,
       headers
     });
@@ -37,7 +39,7 @@ async function request(path, options = {}) {
     if (!response.ok) {
       if (response.status === 401) {
         clearAuth();
-        window.location.assign('/auth/login.html');
+        window.location.assign(resolveAppUrl('/auth/login.html'));
         throw new Error('Session expired. Please sign in again.');
       }
 
