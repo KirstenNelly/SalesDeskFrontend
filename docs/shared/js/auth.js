@@ -8,12 +8,14 @@ const DEMO_CREDENTIALS = [
     username: 'admin@salesdesk.test',
     password: 'password',
     role: 'ADMIN',
+    token: 'demo-token-admin',
     user: { name: 'Admin User', email: 'admin@salesdesk.test', role: 'ADMIN' }
   },
   {
     username: 'cashier@salesdesk.test',
     password: 'password',
     role: 'CASHIER',
+    token: 'demo-token-cashier',
     user: { name: 'Cashier User', email: 'cashier@salesdesk.test', role: 'CASHIER' }
   }
 ];
@@ -101,20 +103,27 @@ export async function login(credentials) {
       throw new Error('Invalid authentication response from server.');
     }
 
+    const normalizedRole = String(payload.role || payload.user?.role || '').toUpperCase();
+    const normalizedUser = { ...(payload.user || {}), role: normalizedRole };
+
     setToken(payload.token);
-    setUser(payload.user);
-    setRole(payload.role.toUpperCase());
-    return payload;
+    setUser(normalizedUser);
+    setRole(normalizedRole);
+    return { ...payload, role: normalizedRole, user: normalizedUser };
   } catch (error) {
     const demoPayload = getDemoPayload(credentials);
     const registeredPayload = getRegisteredPayload(credentials);
     const fallbackPayload = registeredPayload || demoPayload;
 
     if (fallbackPayload && isBackendUnavailable(error)) {
-      setToken(fallbackPayload.token);
-      setUser(fallbackPayload.user);
-      setRole(fallbackPayload.role);
-      return fallbackPayload;
+      const normalizedRole = String(fallbackPayload.role || fallbackPayload.user?.role || '').toUpperCase();
+      const normalizedUser = { ...(fallbackPayload.user || {}), role: normalizedRole };
+      const token = fallbackPayload.token || 'demo-token';
+
+      setToken(token);
+      setUser(normalizedUser);
+      setRole(normalizedRole);
+      return { ...fallbackPayload, token, role: normalizedRole, user: normalizedUser };
     }
 
     throw error;
