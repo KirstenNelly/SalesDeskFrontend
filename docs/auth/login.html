@@ -19,28 +19,34 @@
           <h1>Welcome back</h1>
           <p>Sign in to access the administrator or cashier workspace.</p>
         </div>
-        <form id="login-form" class="stack">
+        <div id="form-message" class="form-message" role="alert" aria-live="polite"></div>
+        <form id="login-form" class="stack" novalidate>
           <label class="field">
             <span>Email or username</span>
             <input id="username" name="username" type="text" autocomplete="username" required />
+            <p class="field-error" data-error-for="username"></p>
           </label>
           <label class="field">
             <span>Password</span>
             <input id="password" name="password" type="password" autocomplete="current-password" required />
+            <p class="field-error" data-error-for="password"></p>
+            <a class="forgot-link" href="#">Forgot Password?</a>
           </label>
-          <button class="btn btn-primary" type="submit">Sign in</button>
+          <button class="btn btn-primary" id="submit-button" type="submit">Sign in</button>
           <div class="actions-row">
-            <button class="btn btn-secondary" id="quick-admin" type="button">Use admin demo</button>
-            <button class="btn btn-secondary" id="quick-cashier" type="button">Use cashier demo</button>
+            <button class="btn btn-secondary" id="quick-admin" type="button">Use Admin Demo</button>
+            <button class="btn btn-secondary" id="quick-cashier" type="button">Use Cashier Demo</button>
           </div>
         </form>
+        <p class="muted demo-help">Demo only — remove before production.</p>
         <p class="muted">Use the demo credentials <strong>admin@salesdesk.test</strong> / <strong>password</strong> for the admin view or <strong>cashier@salesdesk.test</strong> / <strong>password</strong> for the cashier workspace.</p>
-        <p class="muted">New here? <a href="./register.html">Create an account</a></p>
+        <p class="muted">Need an account? Contact your system administrator.</p>
       </section>
     </main>
 
     <script type="module">
       import { redirectIfAuthenticated, login } from '../shared/js/auth.js';
+      import { resolveAppUrl } from '../shared/js/route-utils.js';
       import { showNotification } from '../shared/js/notifications.js';
 
       redirectIfAuthenticated();
@@ -53,18 +59,127 @@
       const form = document.getElementById('login-form');
       const usernameInput = document.getElementById('username');
       const passwordInput = document.getElementById('password');
+      const submitButton = document.getElementById('submit-button');
+      const formMessage = document.getElementById('form-message');
+      const errorHints = {
+        username: document.querySelector('[data-error-for="username"]'),
+        password: document.querySelector('[data-error-for="password"]')
+      };
+
+      function setFormMessage(message = '', type = 'error') {
+        formMessage.textContent = message;
+        formMessage.className = `form-message ${message ? type : ''}`.trim();
+      }
+
+      function clearValidation() {
+        [usernameInput, passwordInput].forEach((input) => {
+          input.classList.remove('is-invalid');
+          input.setAttribute('aria-invalid', 'false');
+          const hint = errorHints[input.id];
+          if (hint) {
+            hint.textContent = '';
+          }
+        });
+      }
+
+      function showFieldError(input, message) {
+        input.classList.add('is-invalid');
+        input.setAttribute('aria-invalid', 'true');
+        const hint = errorHints[input.id];
+        if (hint) {
+          hint.textContent = message;
+        }
+      }
+
+      function validateField(input) {
+        const value = input.value;
+        const isValid = value.trim().length > 0;
+        if (isValid) {
+          input.classList.remove('is-invalid');
+          input.setAttribute('aria-invalid', 'false');
+          const hint = errorHints[input.id];
+          if (hint) {
+            hint.textContent = '';
+          }
+          return true;
+        }
+
+        const message = input === usernameInput
+          ? 'Please enter your email or username.'
+          : 'Please enter your password.';
+        showFieldError(input, message);
+        return false;
+      }
+
+      function validateForm() {
+        clearValidation();
+        const isUsernameValid = validateField(usernameInput);
+        const isPasswordValid = validateField(passwordInput);
+        return isUsernameValid && isPasswordValid;
+      }
+
+      function setSubmitting(isSubmitting) {
+        submitButton.disabled = isSubmitting;
+        submitButton.textContent = isSubmitting ? 'Signing in...' : 'Sign in';
+      }
+
+      function getFriendlyErrorMessage(error) {
+        const rawMessage = (error?.message || '').toLowerCase();
+        if (/session expired|expired/i.test(rawMessage)) {
+          return 'Session expired. Please sign in again.';
+        }
+
+        if (/network|failed to fetch|fetch/i.test(rawMessage)) {
+          return 'Network error. Please try again.';
+        }
+
+        if (/invalid|unauthorized|incorrect|password|.username|email/i.test(rawMessage)) {
+          return 'Invalid email or password.';
+        }
+
+        return error?.message || 'Unable to sign in. Please try again.';
+      }
 
       async function submitCredentials(credentials) {
+        if (!validateForm()) {
+          setFormMessage('Please complete the highlighted fields to continue.');
+          return;
+        }
+
+        setSubmitting(true);
+        setFormMessage('');
+
         try {
           const payload = await login(credentials);
           showNotification('Signed in successfully', 'success');
           const role = (payload.role || payload.user?.role || '').toString().toUpperCase();
-          const destination = role === 'ADMIN' ? '../admin/dashboard.html' : '../cashier/dashboard.html';
+          const destination = role === 'ADMIN'
+            ? resolveAppUrl('/admin/dashboard/index.html')
+            : resolveAppUrl('/cashier/dashboard/index.html');
           window.location.assign(destination);
         } catch (error) {
-          showNotification(error.message || 'Unable to sign in. Please try again.', 'error');
+          const message = getFriendlyErrorMessage(error);
+          setFormMessage(message);
+          showNotification(message, 'error');
+          setSubmitting(false);
         }
       }
+
+      [usernameInput, passwordInput].forEach((input) => {
+        input.addEventListener('input', () => {
+          if (input.value.trim()) {
+            input.classList.remove('is-invalid');
+            input.setAttribute('aria-invalid', 'false');
+            const hint = errorHints[input.id];
+            if (hint) {
+              hint.textContent = '';
+            }
+          }
+        });
+      });
+
+      usernameInput.addEventListener('blur', () => validateField(usernameInput));
+      passwordInput.addEventListener('blur', () => validateField(passwordInput));
 
       document.getElementById('quick-admin').addEventListener('click', () => {
         submitCredentials({ username: 'admin@salesdesk.test', password: 'password' });
@@ -81,6 +196,12 @@
           password: passwordInput.value
         });
       });
+
+      const pendingMessage = sessionStorage.getItem('salesdesk.authMessage');
+      if (pendingMessage) {
+        setFormMessage(pendingMessage);
+        sessionStorage.removeItem('salesdesk.authMessage');
+      }
     </script>
   </body>
 </html>

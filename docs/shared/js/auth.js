@@ -87,6 +87,7 @@ export function isAuthenticated() {
   }
 
   if (isTokenExpired(token)) {
+    sessionStorage.setItem('salesdesk.authMessage', 'Session expired. Please sign in again.');
     showNotification('Session expired. Please sign in again.', 'info');
     logout();
     return false;
@@ -132,7 +133,7 @@ export async function login(credentials) {
 
 export function logout() {
   clearAuth();
-  window.location.assign('../auth/login.html');
+  window.location.assign(resolveAppUrl('/auth/login.html'));
 }
 
 export function requireRole(role) {
@@ -146,9 +147,9 @@ export function requireRole(role) {
     showNotification('You are not authorized to access this page.', 'error');
 
     if (currentRole === 'ADMIN') {
-      window.location.assign('../admin/dashboard.html');
+      window.location.assign(resolveAppUrl('/admin/dashboard/index.html'));
     } else if (currentRole === 'CASHIER') {
-      window.location.assign('../cashier/dashboard.html');
+      window.location.assign(resolveAppUrl('/cashier/dashboard/index.html'));
     } else {
       logout();
     }
@@ -167,12 +168,12 @@ export function redirectIfAuthenticated() {
   const role = getRole();
 
   if (role === 'ADMIN') {
-    window.location.assign('../admin/dashboard.html');
+    window.location.assign(resolveAppUrl('/admin/dashboard/index.html'));
     return true;
   }
 
   if (role === 'CASHIER') {
-    window.location.assign('../cashier/dashboard.html');
+    window.location.assign(resolveAppUrl('/cashier/dashboard/index.html'));
     return true;
   }
 

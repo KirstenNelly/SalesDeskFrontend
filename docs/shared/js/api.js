@@ -43,6 +43,7 @@ async function request(path, options = {}) {
 
       const isAuthEndpoint = normalizedPath.startsWith('auth/login') || normalizedPath.startsWith('auth/register');
       if (response.status === 401 && !isAuthEndpoint) {
+        sessionStorage.setItem('salesdesk.authMessage', 'Session expired. Please sign in again.');
         clearAuth();
         window.location.assign(resolveAppUrl('/auth/login.html'));
         error.message = 'Session expired. Please sign in again.';
