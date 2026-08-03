@@ -25,12 +25,54 @@ main { min-height: 100vh; }
   padding: 2rem;
   box-shadow: var(--shadow);
 }
+.auth-card__header {
+  margin-bottom: 0.75rem;
+}
+.auth-card__header h1 {
+  margin: 0 0 0.2rem;
+}
+.auth-card__header p {
+  margin: 0;
+}
 .stack { display: grid; gap: 1rem; }
 .field { display: grid; gap: 0.45rem; font-weight: 600; }
-.field input {
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-with-icon input {
+  width: 100%;
   border: 1px solid #d1d5db;
   border-radius: 10px;
-  padding: 0.8rem 0.95rem;
+  padding: 0.85rem 0.95rem 0.85rem 2.75rem;
+}
+.input-with-icon--password input {
+  padding-right: 2.75rem;
+}
+.field-icon {
+  position: absolute;
+  left: 0.95rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-muted);
+  pointer-events: none;
+}
+.password-toggle {
+  position: absolute;
+  right: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  padding: 0.2rem;
+}
+.password-toggle__icon {
+  width: 1rem;
+  height: 1rem;
 }
 .field input.is-invalid {
   border-color: #dc2626;
@@ -74,6 +116,33 @@ main { min-height: 100vh; }
   font-size: 0.9rem;
   color: var(--color-teal);
   font-weight: 600;
+}
+.demo-card {
+  margin-top: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  background: #f8fafc;
+}
+.demo-card__title {
+  margin: 0 0 0.55rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-navy);
+}
+.demo-card__group + .demo-card__group {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid #e5e7eb;
+}
+.demo-card__heading {
+  margin: 0 0 0.2rem;
+  font-weight: 700;
+  color: var(--color-teal);
+}
+.demo-card__value {
+  margin: 0;
+  color: var(--color-text);
 }
 .demo-help {
   margin-top: 0.6rem;
